@@ -14,7 +14,7 @@ class Game:
         self.running = True
 
         # Tạo player — spawn ô (12, 24) gần đáy màn hình
-        self.player = PlayerTank(col=12, row=24)
+        self.player = PlayerTank(col=12, row=22)
 
     def run(self):
         while self.running:

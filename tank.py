@@ -123,8 +123,8 @@ class Tank(pygame.sprite.Sprite):
 class PlayerTank(Tank):
     """Tank do người chơi điều khiển bằng bàn phím."""
 
-    def __init__(self, col=12, row=24):
-        super().__init__(col, row, color=(255, 200, 0))
+    def __init__(self, col=12, row=22):
+        super().__init__(col, row, color=(0, 200, 80))
 
     def update(self, game_map):
         """Đọc phím bấm và di chuyển — gọi mỗi frame."""
