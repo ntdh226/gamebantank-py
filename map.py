@@ -2,11 +2,32 @@
 import pygame
 from obstacle import Obstacle, PASSABLE, COLORS
 from constants import ROWS, COLS, TILE_SIZE
-
+from levels.level1 import LEVEL_1
+from levels.level2 import LEVEL_2   
 class Map:
     def __init__(self):
         self.grid = [[Obstacle.EMPTY] * COLS for _ in range(ROWS)]
-        self._load_default()
+        self._load_default("level")
+    
+    def load_level(self, level_data):
+        with open( level_data, "r") as f:
+            lines = [line.strip() for line in f.readlines()]
+
+        mapping = {
+            ".": Obstacle.EMPTY,
+            "B": Obstacle.BRICK,
+            "S": Obstacle.STEEL,
+            "W": Obstacle.WATER,
+            "F": Obstacle.FOREST,
+            "x": Obstacle.BASE,
+        }
+        
+        for y, row in enumerate(level_data):
+            for x, char in enumerate(row):
+                self.grid[y][x] = mapping.get(
+                    char,
+                    Obstacle.EMPTY,
+                )
 
     def _load_default(self):
         """Map mặc định — đặt BASE ở giữa hàng cuối"""
