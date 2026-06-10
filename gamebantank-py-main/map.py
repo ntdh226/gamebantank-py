@@ -5,35 +5,30 @@ from constants import ROWS, COLS, TILE_SIZE
 
 
 class Map:
-    def __init__(self):
+    def __init__(self, level=3):
         self.grid = [[Obstacle.EMPTY] * COLS for _ in range(ROWS)]
-        self._load_default()
+        self.load_level(f"levels/level{level}.txt")
     
-    def load_level(self, level_data):
-        with open( level_data, "r") as f:
+    def load_level(self, filename):
+        
+        with open(filename, "r") as f:
             lines = [line.strip() for line in f.readlines()]
-
+        
         mapping = {
             ".": Obstacle.EMPTY,
             "B": Obstacle.BRICK,
             "S": Obstacle.STEEL,
             "W": Obstacle.WATER,
             "F": Obstacle.FOREST,
-            "x": Obstacle.BASE,
+            "X": Obstacle.BASE,
         }
         
-        for y, row in enumerate(level_data):
+        for y, row in enumerate(lines):
             for x, char in enumerate(row):
                 self.grid[y][x] = mapping.get(
                     char,
                     Obstacle.EMPTY,
                 )
-
-    def _load_default(self):
-        """Map mặc định — đặt BASE ở giữa hàng cuối"""
-        base_x = COLS // 2
-        base_y = ROWS - 1
-        self.grid[base_y][base_x] = Obstacle.BASE
 
     def get_tile(self, x, y):
         if 0 <= x < COLS and 0 <= y < ROWS:

@@ -1,4 +1,4 @@
-# obstacle.py
+ # obstacle.py
 class Obstacle:
     EMPTY  = 0
     BRICK  = 1
