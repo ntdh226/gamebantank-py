@@ -2,12 +2,12 @@
 import pygame
 from obstacle import Obstacle, PASSABLE, COLORS
 from constants import ROWS, COLS, TILE_SIZE
-from levels.level1 import LEVEL_1
-from levels.level2 import LEVEL_2   
+
+
 class Map:
     def __init__(self):
         self.grid = [[Obstacle.EMPTY] * COLS for _ in range(ROWS)]
-        self._load_default("level")
+        self._load_default()
     
     def load_level(self, level_data):
         with open( level_data, "r") as f:
