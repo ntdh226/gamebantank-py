@@ -1,19 +1,38 @@
 # map.py
-from fileinput import filename
-import os
-
 import pygame
 from obstacle import Obstacle, PASSABLE, COLORS
 from constants import ROWS, COLS, TILE_SIZE
 
 
 class Map:
-    def __init__(self, level=3):
+    def __init__(self, level=2):
         self.grid = [[Obstacle.EMPTY] * COLS for _ in range(ROWS)]
         self.load_level(f"levels/level{level}.txt")
 
-    def load_level(self, filename):
+        self.images = {
+            Obstacle.BRICK: pygame.transform.scale(
+                pygame.image.load("assets/brick.png"),
+                (TILE_SIZE, TILE_SIZE)
+            ),
+            Obstacle.STEEL: pygame.transform.scale(
+                pygame.image.load("assets/steel.png"),
+                (TILE_SIZE, TILE_SIZE)
+            ),
+            Obstacle.WATER: pygame.transform.scale(
+                pygame.image.load("assets/water.png"),
+                (TILE_SIZE, TILE_SIZE)
+            ),
+            Obstacle.FOREST: pygame.transform.scale(
+                pygame.image.load("assets/forest.png"),
+                (TILE_SIZE, TILE_SIZE)
+            ),
+            Obstacle.BASE: pygame.transform.scale(
+                pygame.image.load("assets/base.png"),
+                (TILE_SIZE, TILE_SIZE)
+            ),
+        }
 
+    def load_level(self, filename):
         with open(filename, "r") as f:
             lines = [line.strip() for line in f.readlines()]
 
@@ -55,9 +74,21 @@ class Map:
         for row in range(ROWS):
             for col in range(COLS):
                 tile = self.grid[row][col]
-                color = COLORS.get(tile, (0, 0, 0))
-                pygame.draw.rect(
-                    screen,
-                    color,
-                    (col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE),
-                )
+
+                if tile in self.images:
+                    screen.blit(
+                        self.images[tile],
+                        (col * TILE_SIZE, row * TILE_SIZE)
+                    )
+                else:
+                    color = COLORS.get(tile, (0, 0, 0))
+                    pygame.draw.rect(
+                        screen,
+                        color,
+                        (
+                            col * TILE_SIZE,
+                            row * TILE_SIZE,
+                            TILE_SIZE,
+                            TILE_SIZE
+                        )
+                    )
