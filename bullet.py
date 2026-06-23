@@ -1,10 +1,20 @@
-# bullet.py
 import pygame
+import os
 from constants import TILE_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT
 from obstacle import Obstacle, DESTRUCTIBLE
 
 BULLET_SPEED = 8
-BULLET_SIZE = 16
+BULLET_SIZE  = 16
+
+CURRENT_DIR = os.path.dirname(__file__)
+IMAGE_PATH = os.path.join(CURRENT_DIR, "assets", "images", "bullet.png")
+
+try:
+    BULLET_IMAGE = pygame.image.load(IMAGE_PATH).convert_alpha()
+    BULLET_IMAGE = pygame.transform.scale(BULLET_IMAGE, (BULLET_SIZE, BULLET_SIZE))
+except pygame.error:
+    BULLET_IMAGE = pygame.Surface((BULLET_SIZE, BULLET_SIZE))
+    BULLET_IMAGE.fill((255, 220, 0))
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -12,37 +22,26 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__()
 
         self.owner = tank
-        self.dir = tank.direction
+        self.dir   = tank.direction
         self.speed = BULLET_SPEED
         self.alive = True
+        self.image = BULLET_IMAGE
 
-        # Spawn tại tâm nòng súng
         cx = tank.x + tank.size // 2
         cy = tank.y + tank.size // 2
 
         half = tank.size // 2
+        spawn_buffer = half + (BULLET_SIZE // 2) + 2 
+
         offset = {
-            "UP": (cx, cy - half),
-            "DOWN": (cx, cy + half),
-            "LEFT": (cx - half, cy),
-            "RIGHT": (cx + half, cy),
+            "UP":    (cx,        cy - spawn_buffer),
+            "DOWN":  (cx,        cy + spawn_buffer),
+            "LEFT":  (cx - spawn_buffer, cy),
+            "RIGHT": (cx + spawn_buffer, cy),
         }
-
         self.x, self.y = offset[self.dir]
-
-        # ===== LOAD ẢNH ĐẠN =====
-        self.image = pygame.image.load(
-            "assets/images/bullet.png"
-        ).convert_alpha()
-
-        self.image = pygame.transform.scale(
-            self.image,
-            (BULLET_SIZE, BULLET_SIZE)
-        )
-
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
-    # ------------------------------------------------------------------
     def update(self, game_map):
         if not self.alive:
             return
@@ -58,12 +57,8 @@ class Bullet(pygame.sprite.Sprite):
 
         self.rect.center = (self.x, self.y)
 
-        if (
-            self.x < 0
-            or self.x > SCREEN_WIDTH
-            or self.y < 0
-            or self.y > SCREEN_HEIGHT
-        ):
+        if (self.rect.left < 0 or self.rect.right > SCREEN_WIDTH or
+                self.rect.top < 0 or self.rect.bottom > SCREEN_HEIGHT):
             self.alive = False
             return
 
@@ -72,14 +67,13 @@ class Bullet(pygame.sprite.Sprite):
         tile = game_map.get_tile(col, row)
 
         if tile == Obstacle.EMPTY or tile == Obstacle.FOREST:
-            return
+            return  
 
         if DESTRUCTIBLE.get(tile, False):
-            game_map.set_tile(col, row, Obstacle.EMPTY)
+            game_map.set_tile(col, row, Obstacle.EMPTY)  
 
-        self.alive = False
+        self.alive = False  
 
-    # ------------------------------------------------------------------
     def draw(self, screen):
         if self.alive:
             screen.blit(self.image, self.rect)
