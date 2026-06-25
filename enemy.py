@@ -19,7 +19,7 @@ class Enemy(EnemyTank):
         self.shoot_timer = 0
         self.shoot_delay = random.randint(60, 120)  # Bắn mỗi 1-2 giây
 
-    def update(self, game_map):
+    def update(self, game_map, other_enemies=None):
         self.frame_count += 1
 
         # Đổi hướng ngẫu nhiên sau một khoảng thời gian
@@ -28,8 +28,8 @@ class Enemy(EnemyTank):
             self.frame_count = 0
             self.change_after = random.randint(30, 60)
 
-        # Di chuyển — dùng move() từ Tank, có check tường sẵn
-        self.move(self.direction, game_map)
+        # Di chuyển — dùng move() từ Tank, có check tường và tank khác
+        self.move(self.direction, game_map, other_tanks=other_enemies)
 
         # Đếm thời gian bắn
         self.shoot_timer += 1

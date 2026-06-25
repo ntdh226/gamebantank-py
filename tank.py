@@ -41,11 +41,10 @@ class Tank(pygame.sprite.Sprite):
         except (pygame.error, FileNotFoundError):
             return None
 
-    def move(self, direction, game_map):
-        """Di chuyển tank nếu không bị chặn bởi tường hoặc biên màn hình."""
+    def move(self, direction, game_map, other_tanks=None):
+        """Di chuyển tank nếu không bị chặn bởi tường, biên màn hình hoặc tank khác."""
         self.direction = direction
 
-        # Tính vị trí mới dựa theo hướng
         new_x = self.x
         new_y = self.y
 
@@ -62,11 +61,22 @@ class Tank(pygame.sprite.Sprite):
         new_x = max(0, min(new_x, (COLS - 1) * TILE_SIZE))
         new_y = max(0, min(new_y, (ROWS - 1) * TILE_SIZE))
 
-        # Chỉ di chuyển nếu không va chạm tường
-        if self._is_passable(new_x, new_y, game_map):
-            self.x = new_x
-            self.y = new_y
-            self.rect.topleft = (self.x, self.y)
+        if not self._is_passable(new_x, new_y, game_map):
+            return
+
+        if other_tanks:
+            target_rect = pygame.Rect(new_x, new_y, self.size, self.size)
+            for other in other_tanks:
+                if other is self:
+                    continue
+                if target_rect.colliderect(other.rect):
+                    if not other._try_push(direction, game_map, other_tanks):
+                        return
+                    break
+
+        self.x = new_x
+        self.y = new_y
+        self.rect.topleft = (self.x, self.y)
 
     def _is_passable(self, x, y, game_map):
         """
@@ -110,6 +120,52 @@ class Tank(pygame.sprite.Sprite):
             )
 
         return True
+
+    def _can_push(self, direction, game_map, other_tanks=None):
+        new_x = self.x
+        new_y = self.y
+
+        if direction == "UP":
+            new_y -= self.speed
+        elif direction == "DOWN":
+            new_y += self.speed
+        elif direction == "LEFT":
+            new_x -= self.speed
+        elif direction == "RIGHT":
+            new_x += self.speed
+
+        new_x = max(0, min(new_x, (COLS - 1) * TILE_SIZE))
+        new_y = max(0, min(new_y, (ROWS - 1) * TILE_SIZE))
+
+        if not self._is_passable(new_x, new_y, game_map):
+            return False
+
+        if other_tanks:
+            target_rect = pygame.Rect(new_x, new_y, self.size, self.size)
+            for other in other_tanks:
+                if other is self:
+                    continue
+                if target_rect.colliderect(other.rect):
+                    return False
+
+        return True
+
+    def _try_push(self, direction, game_map, other_tanks=None):
+        if self._can_push(direction, game_map, other_tanks):
+            if direction == "UP":
+                self.y -= self.speed
+            elif direction == "DOWN":
+                self.y += self.speed
+            elif direction == "LEFT":
+                self.x -= self.speed
+            elif direction == "RIGHT":
+                self.x += self.speed
+
+            self.x = max(0, min(self.x, (COLS - 1) * TILE_SIZE))
+            self.y = max(0, min(self.y, (ROWS - 1) * TILE_SIZE))
+            self.rect.topleft = (self.x, self.y)
+            return True
+        return False
 
     def _update_image_for_direction(self):
         """Xoay ảnh theo hướng hiện tại của tank."""
