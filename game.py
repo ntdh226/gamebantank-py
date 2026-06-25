@@ -48,11 +48,7 @@ class Game:
         self.playing_level = level
         self.map = Map(level=level)
         self.player = PlayerTank(col=11, row=22)
-        self.enemies = [
-            Enemy(col=5, row=2, image_path="Xe tăng địch 1.png"),
-            Enemy(col=20, row=2, image_path="Xe tăng địch 2.png"),
-            Enemy(col=12, row=2, image_path="Xe tăng địch 3.png"),
-        ]
+        self.enemies = self._create_enemies_for_level(level)
         self.bullets = []
         self.sounds = self._load_sounds()
         # Chuyển sang trạng thái chơi sau khi khởi tạo level
@@ -124,7 +120,7 @@ class Game:
 
         # 2. Cập nhật enemy: di chuyển + bắn đạn
         for enemy in self.enemies:
-            enemy.update(self.map)
+            enemy.update(self.map, other_enemies=self.enemies)
             if enemy.can_shoot():
                 self.bullets.append(Bullet(enemy))
 
@@ -147,6 +143,10 @@ class Game:
 
         if destroyed:
             self.play_sound("tank_crack")
+
+        if self.player in destroyed:
+            self.state = STATE_GAMEOVER
+            return
 
         # Xóa enemy bị tiêu diệt
         for tank in destroyed:
@@ -177,11 +177,7 @@ class Game:
             self.player.x = 11 * TILE_SIZE
             self.player.y = 22 * TILE_SIZE
             self.player.rect.topleft = (self.player.x, self.player.y)
-            self.enemies = [
-                Enemy(col=5, row=2, image_path="Xe tăng địch 1.png"),
-                Enemy(col=20, row=2, image_path="Xe tăng địch 2.png"),
-                Enemy(col=12, row=2, image_path="Xe tăng địch 3.png"),
-            ]
+            self.enemies = self._create_enemies_for_level(self.map.current_level)
 
     # ------------------------------------------------------------------
     def draw(self):
@@ -244,3 +240,27 @@ class Game:
         self.screen.blit(
             opt2, opt2.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
         )
+
+    def _create_enemies_for_level(self, level: int):
+        spawn_positions = [
+            (5, 2, "Xe tăng địch 1.png"),
+            (12, 2, "Xe tăng địch 2.png"),
+            (20, 2, "Xe tăng địch 3.png"),
+            (8, 2, "Xe tăng địch 1.png"),
+            (17, 2, "Xe tăng địch 2.png"),
+            (3, 2, "Xe tăng địch 3.png"),
+            (22, 2, "Xe tăng địch 1.png"),
+        ]
+
+        count = 3
+        if level == 1:
+            count = 3
+        elif level == 2:
+            count = 5
+        elif level == 3:
+            count = 7
+
+        enemies = []
+        for col, row, image_path in spawn_positions[:count]:
+            enemies.append(Enemy(col=col, row=row, image_path=image_path))
+        return enemies

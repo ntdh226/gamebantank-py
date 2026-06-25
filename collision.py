@@ -8,6 +8,8 @@ Hàm chính:
         → Trả về set các tank bị tiêu diệt (để game xử lý thêm).
 """
 
+from tank import EnemyTank, PlayerTank
+
 
 def handle_bullet_collisions(bullets: list, tanks: list) -> set:
     """
@@ -15,6 +17,7 @@ def handle_bullet_collisions(bullets: list, tanks: list) -> set:
 
     Quy tắc:
     - Đạn không thể trúng chính tank đã bắn ra nó (owner).
+    - Đạn địch không giết địch khác.
     - Khi trúng: đạn bị hủy (alive = False), tank bị đánh dấu destroyed.
     - Hai đạn đi ngược chiều có thể triệt tiêu nhau.
 
@@ -34,6 +37,10 @@ def handle_bullet_collisions(bullets: list, tanks: list) -> set:
         for tank in tanks:
             # Không tự bắn mình
             if tank is bullet.owner:
+                continue
+
+            # Đạn địch không làm hại địch khác
+            if isinstance(bullet.owner, EnemyTank) and isinstance(tank, EnemyTank):
                 continue
 
             # Va chạm AABB — dùng rect của bullet và rect của tank
