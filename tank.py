@@ -6,7 +6,7 @@ from constants import TILE_SIZE, TANK_SPEED, COLS, ROWS
 class Tank(pygame.sprite.Sprite):
     """Lớp cơ sở cho xe tăng (dùng chung cho Player và Enemy)."""
 
-    def __init__(self, col, row, color, speed=TANK_SPEED):
+    def __init__(self, col, row, color, speed=TANK_SPEED, is_enemy=False):
         super().__init__()
 
         # Vị trí pixel (chuyển từ tọa độ lưới sang pixel)
@@ -17,6 +17,7 @@ class Tank(pygame.sprite.Sprite):
         self.direction = "UP"  # Hướng mặc định
         self.color = color
         self.size = TILE_SIZE  # Tank chiếm 1 ô = 30px
+        self.is_enemy = is_enemy  # Phân biệt team: True = địch, False = player
 
         # Pygame Sprite cần image và rect
         self.image = pygame.Surface((self.size, self.size))
@@ -124,7 +125,7 @@ class PlayerTank(Tank):
     """Tank do người chơi điều khiển bằng bàn phím."""
 
     def __init__(self, col=12, row=22):
-        super().__init__(col, row, color=(0, 200, 80))
+        super().__init__(col, row, color=(0, 200, 80), is_enemy=False)
 
     def update(self, game_map):
         """Đọc phím bấm và di chuyển — gọi mỗi frame."""
@@ -144,7 +145,7 @@ class EnemyTank(Tank):
     """Tank địch — AI sẽ được thêm vào sau."""
 
     def __init__(self, col, row):
-        super().__init__(col, row, color=(160, 160, 160))
+        super().__init__(col, row, color=(160, 160, 160), is_enemy=True)
 
     def update(self, game_map):
         pass  # TODO: thêm AI di chuyển
