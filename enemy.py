@@ -8,8 +8,8 @@ from tank import EnemyTank
 class Enemy(EnemyTank):
     """Xe tăng địch di chuyển ngẫu nhiên và bắn đạn."""
 
-    def __init__(self, col, row):
-        super().__init__(col, row)
+    def __init__(self, col, row, image_path=None):
+        super().__init__(col, row, image_path=image_path)
 
         # Đếm frame để đổi hướng
         self.frame_count = 0

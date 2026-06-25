@@ -1,4 +1,5 @@
 # game.py
+import os
 import pygame
 from constants import (
     SCREEN_WIDTH,
@@ -22,6 +23,7 @@ class Game:
         pygame.display.set_caption("Game Ban Tank")
         self.clock = pygame.time.Clock()
         self.running = True
+        self.state = "playing"
 
         # Font dùng cho UI (start screen / game over screen)
         self.font_title = pygame.font.SysFont(None, 64)
@@ -47,12 +49,36 @@ class Game:
         self.map = Map(level=level)
         self.player = PlayerTank(col=11, row=22)
         self.enemies = [
-            Enemy(col=5, row=2),
-            Enemy(col=20, row=2),
-            Enemy(col=12, row=2),
+            Enemy(col=5, row=2, image_path="Xe tăng địch 1.png"),
+            Enemy(col=20, row=2, image_path="Xe tăng địch 2.png"),
+            Enemy(col=12, row=2, image_path="Xe tăng địch 3.png"),
         ]
         self.bullets = []
-        self.state = STATE_PLAYING
+        self.sounds = self._load_sounds()
+        self.play_sound("start")
+
+    def _load_sounds(self):
+        base_dir = os.path.dirname(__file__)
+        sound_paths = {
+            "start": os.path.join(base_dir, "assets", "start.mp3"),
+            "attack": os.path.join(base_dir, "assets", "attack.mp3"),
+            "tank_crack": os.path.join(base_dir, "assets", "tankCrack.mp3"),
+        }
+
+        sounds = {}
+        for name, path in sound_paths.items():
+            try:
+                sound = pygame.mixer.Sound(path)
+                sound.set_volume(0.35)
+                sounds[name] = sound
+            except (pygame.error, FileNotFoundError):
+                sounds[name] = None
+        return sounds
+
+    def play_sound(self, name):
+        sound = self.sounds.get(name)
+        if sound is not None:
+            sound.play()
 
     # ------------------------------------------------------------------
     def run(self):
@@ -78,6 +104,7 @@ class Game:
             elif self.state == STATE_PLAYING:
                 if event.key == pygame.K_SPACE:
                     self.bullets.append(Bullet(self.player))
+                    self.play_sound("attack")
 
             elif self.state == STATE_GAMEOVER:
                 if event.key == pygame.K_r:
@@ -116,14 +143,10 @@ class Game:
         all_tanks = [self.player] + self.enemies
         destroyed = handle_bullet_collisions(self.bullets, all_tanks)
 
-        # 7. YÊU CẦU: đạn địch bắn trúng player -> thua ngay
-        #    (player không tự bắn được mình, nên nếu player có trong destroyed
-        #     thì chắc chắn là do đạn của enemy gây ra)
-        if self.player in destroyed:
-            self.state = STATE_GAMEOVER
-            return
+        if destroyed:
+            self.play_sound("tank_crack")
 
-        # 8. Xóa các enemy đã bị tiêu diệt (bởi đạn của player)
+        # Xóa enemy bị tiêu diệt
         for tank in destroyed:
             if tank in self.enemies:
                 self.enemies.remove(tank)
@@ -153,9 +176,9 @@ class Game:
             self.player.y = 22 * TILE_SIZE
             self.player.rect.topleft = (self.player.x, self.player.y)
             self.enemies = [
-                Enemy(col=5, row=2),
-                Enemy(col=20, row=2),
-                Enemy(col=12, row=2),
+                Enemy(col=5, row=2, image_path="Xe tăng địch 1.png"),
+                Enemy(col=20, row=2, image_path="Xe tăng địch 2.png"),
+                Enemy(col=12, row=2, image_path="Xe tăng địch 3.png"),
             ]
 
     # ------------------------------------------------------------------
