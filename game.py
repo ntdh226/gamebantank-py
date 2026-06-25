@@ -1,4 +1,5 @@
 # game.py
+import os
 import pygame
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TILE_SIZE
 from map import Map
@@ -23,6 +24,31 @@ class Game:
             Enemy(col=12, row=2),
         ]
         self.bullets = []
+        self.sounds = self._load_sounds()
+        self.play_sound("start")
+
+    def _load_sounds(self):
+        base_dir = os.path.dirname(__file__)
+        sound_paths = {
+            "start": os.path.join(base_dir, "assets", "start.mp3"),
+            "attack": os.path.join(base_dir, "assets", "attack.mp3"),
+            "tank_crack": os.path.join(base_dir, "assets", "tankCrack.mp3"),
+        }
+
+        sounds = {}
+        for name, path in sound_paths.items():
+            try:
+                sound = pygame.mixer.Sound(path)
+                sound.set_volume(0.35)
+                sounds[name] = sound
+            except (pygame.error, FileNotFoundError):
+                sounds[name] = None
+        return sounds
+
+    def play_sound(self, name):
+        sound = self.sounds.get(name)
+        if sound is not None:
+            sound.play()
 
     def run(self):
         while self.running:
@@ -40,6 +66,7 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     self.bullets.append(Bullet(self.player))
+                    self.play_sound("attack")
 
     def update(self):
         # Cập nhật player
@@ -61,6 +88,9 @@ class Game:
         # Xử lý va chạm đạn với tank
         all_tanks = [self.player] + self.enemies
         destroyed = handle_bullet_collisions(self.bullets, all_tanks)
+
+        if destroyed:
+            self.play_sound("tank_crack")
 
         # Xóa enemy bị tiêu diệt
         for tank in destroyed:
