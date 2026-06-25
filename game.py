@@ -55,6 +55,8 @@ class Game:
         ]
         self.bullets = []
         self.sounds = self._load_sounds()
+        # Chuyển sang trạng thái chơi sau khi khởi tạo level
+        self.state = STATE_PLAYING
         self.play_sound("start")
 
     def _load_sounds(self):
