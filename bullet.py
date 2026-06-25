@@ -25,6 +25,7 @@ class Bullet(pygame.sprite.Sprite):
         self.dir = tank.direction
         self.speed = BULLET_SPEED
         self.alive = True
+        self.hit_base = False  # True neu vien dan nay da ban trung Base
         self.image = BULLET_IMAGE
 
         cx = tank.x + tank.size // 2
@@ -71,6 +72,13 @@ class Bullet(pygame.sprite.Sprite):
         tile = game_map.get_tile(col, row)
 
         if tile == Obstacle.EMPTY or tile == Obstacle.FOREST:
+            return
+
+        # YEU CAU: dan trung Base (bat ke ai ban) -> bao cho Game biet de thua
+        if tile == Obstacle.BASE:
+            self.hit_base = True
+            game_map.set_tile(col, row, Obstacle.EMPTY)
+            self.alive = False
             return
 
         if DESTRUCTIBLE.get(tile, False):

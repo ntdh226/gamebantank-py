@@ -37,7 +37,7 @@ def handle_bullet_collisions(bullets: list, tanks: list) -> set:
                 continue
 
             # Va chạm AABB — dùng rect của bullet và rect của tank
-            bx = bullet.x - 3   # BULLET_SIZE // 2
+            bx = bullet.x - 3  # BULLET_SIZE // 2
             by = bullet.y - 3
             bw = bh = 6
 
@@ -45,8 +45,7 @@ def handle_bullet_collisions(bullets: list, tanks: list) -> set:
             ty = tank.y
             ts = tank.size
 
-            if (bx < tx + ts and bx + bw > tx and
-                    by < ty + ts and by + bh > ty):
+            if bx < tx + ts and bx + bw > tx and by < ty + ts and by + bh > ty:
                 bullet.alive = False
                 destroyed.add(tank)
 
@@ -62,3 +61,12 @@ def handle_bullet_collisions(bullets: list, tanks: list) -> set:
                 b2.alive = False
 
     return destroyed
+
+
+def check_base_destroyed(bullets: list) -> bool:
+    """Trả về True nếu có viên đạn nào bắn trúng Base.
+
+    Bullet.update() sẽ đặt `hit_base = True` khi đạn chạm Base,
+    vì vậy chỉ cần kiểm tra thuộc tính đó ở các viên đạn còn lại.
+    """
+    return any(getattr(b, "hit_base", False) for b in bullets)
