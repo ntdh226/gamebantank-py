@@ -1,4 +1,5 @@
 # tank.py
+import os
 import pygame
 from constants import TILE_SIZE, TANK_SPEED, COLS, ROWS
 
@@ -6,7 +7,7 @@ from constants import TILE_SIZE, TANK_SPEED, COLS, ROWS
 class Tank(pygame.sprite.Sprite):
     """Lớp cơ sở cho xe tăng (dùng chung cho Player và Enemy)."""
 
-    def __init__(self, col, row, color, speed=TANK_SPEED):
+    def __init__(self, col, row, color, speed=TANK_SPEED, image_path=None):
         super().__init__()
 
         # Vị trí pixel (chuyển từ tọa độ lưới sang pixel)
@@ -17,11 +18,28 @@ class Tank(pygame.sprite.Sprite):
         self.direction = "UP"  # Hướng mặc định
         self.color = color
         self.size = TILE_SIZE  # Tank chiếm 1 ô = 30px
+        self.image_path = image_path
 
         # Pygame Sprite cần image và rect
-        self.image = pygame.Surface((self.size, self.size))
-        self.image.fill(self.color)
+        self.base_image = self._load_image(image_path)
+        self.image = self.base_image
+        if self.image is None:
+            self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
+            self.image.fill(color)
+            self.base_image = self.image
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self._update_image_for_direction()
+
+    def _load_image(self, image_path):
+        if not image_path:
+            return None
+
+        full_path = os.path.join(os.path.dirname(__file__), "assets", image_path)
+        try:
+            image = pygame.image.load(full_path).convert_alpha()
+            return pygame.transform.scale(image, (self.size, self.size))
+        except (pygame.error, FileNotFoundError):
+            return None
 
     def move(self, direction, game_map):
         """Di chuyển tank nếu không bị chặn bởi tường hoặc biên màn hình."""
@@ -93,38 +111,44 @@ class Tank(pygame.sprite.Sprite):
 
         return True
 
-    def draw(self, screen):
-        """Vẽ thân xe và nòng súng."""
-        # Vẽ thân xe
-        pygame.draw.rect(screen, self.color, (self.x, self.y, self.size, self.size))
-        # Vẽ nòng súng
-        self._draw_barrel(screen)
-
-    def _draw_barrel(self, screen):
-        """Vẽ nòng súng nhỏ để biết tank đang nhìn hướng nào."""
-        cx = self.x + self.size // 2
-        cy = self.y + self.size // 2
-        barrel_color = (40, 40, 40)
+    def _update_image_for_direction(self):
+        """Xoay ảnh theo hướng hiện tại của tank."""
+        if self.base_image is None:
+            return
 
         if self.direction == "UP":
-            pygame.draw.rect(screen, barrel_color, (cx - 3, self.y, 6, 12))
+            rotated = self.base_image
         elif self.direction == "DOWN":
-            pygame.draw.rect(
-                screen, barrel_color, (cx - 3, self.y + self.size - 12, 6, 12)
-            )
+            rotated = pygame.transform.rotate(self.base_image, 180)
         elif self.direction == "LEFT":
-            pygame.draw.rect(screen, barrel_color, (self.x, cy - 3, 12, 6))
+            rotated = pygame.transform.rotate(self.base_image, 90)
         elif self.direction == "RIGHT":
-            pygame.draw.rect(
-                screen, barrel_color, (self.x + self.size - 12, cy - 3, 12, 6)
-            )
+            rotated = pygame.transform.rotate(self.base_image, -90)
+        else:
+            rotated = self.base_image
+
+        self.image = rotated
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+
+    def draw(self, screen):
+        """Vẽ tank bằng ảnh nếu có, nếu không thì dùng hình vuông màu."""
+        self._update_image_for_direction()
+        if self.image is not None:
+            screen.blit(self.image, self.rect)
+        else:
+            pygame.draw.rect(screen, self.color, self.rect)
 
 
 class PlayerTank(Tank):
     """Tank do người chơi điều khiển bằng bàn phím."""
 
     def __init__(self, col=12, row=22):
-        super().__init__(col, row, color=(0, 200, 80))
+        super().__init__(
+            col,
+            row,
+            color=(0, 200, 80),
+            image_path="Người chơi 1.png",
+        )
 
     def update(self, game_map):
         """Đọc phím bấm và di chuyển — gọi mỗi frame."""
@@ -143,8 +167,13 @@ class PlayerTank(Tank):
 class EnemyTank(Tank):
     """Tank địch — AI sẽ được thêm vào sau."""
 
-    def __init__(self, col, row):
-        super().__init__(col, row, color=(160, 160, 160))
+    def __init__(self, col, row, image_path="Xe tăng địch 1.png"):
+        super().__init__(
+            col,
+            row,
+            color=(160, 160, 160),
+            image_path=image_path,
+        )
 
     def update(self, game_map):
         pass  # TODO: thêm AI di chuyển

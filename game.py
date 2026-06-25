@@ -16,12 +16,13 @@ class Game:
         self.clock = pygame.time.Clock()
         self.map = Map()
         self.running = True
+        self.state = "playing"
 
         self.player = PlayerTank(col=11, row=22)
         self.enemies = [
-            Enemy(col=5, row=2),
-            Enemy(col=20, row=2),
-            Enemy(col=12, row=2),
+            Enemy(col=5, row=2, image_path="Xe tăng địch 1.png"),
+            Enemy(col=20, row=2, image_path="Xe tăng địch 2.png"),
+            Enemy(col=12, row=2, image_path="Xe tăng địch 3.png"),
         ]
         self.bullets = []
         self.sounds = self._load_sounds()
@@ -123,9 +124,9 @@ class Game:
             self.player.rect.topleft = (self.player.x, self.player.y)
             # Spawn lại enemy
             self.enemies = [
-                Enemy(col=5, row=2),
-                Enemy(col=20, row=2),
-                Enemy(col=12, row=2),
+                Enemy(col=5, row=2, image_path="Xe tăng địch 1.png"),
+                Enemy(col=20, row=2, image_path="Xe tăng địch 2.png"),
+                Enemy(col=12, row=2, image_path="Xe tăng địch 3.png"),
             ]
 
     def draw(self):
